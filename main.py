@@ -80,6 +80,12 @@ def vin(vid):
     
     return jsonify(vehicle.vin())
 
+@app.route('/vehicle/<vid>/odometer')
+def odometer(vid):
+    vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access["access_token"])
+    
+    return jsonify(vehicle.odometer())
+
 @app.route('/refreshtoken')
 def refreshtoken():
     if smartcar.expired(access["expiration"]):
