@@ -1,19 +1,23 @@
-import smartcar
+import smartcar, configparser
 from flask import Flask, redirect, request, jsonify
 
-app = Flask(__name__)
+config = configparser.ConfigParser()
+config.read('config.ini')
 
+AuthConfig = config["Auth"]
+
+app = Flask(__name__)
 
 access = None
 
 client = smartcar.AuthClient(
-    client_id="7f76ba71-1fdc-4bc3-92e9-51c7f3304a41",
-    client_secret="e1fddb8c-d5cb-4a2a-a9aa-12958b3bc73e",
-    redirect_uri="http://localhost:8000/exchange",
+    client_id=AuthConfig["client_id"],
+    client_secret=AuthConfig["client_secret"],
+    redirect_uri=AuthConfig["redirect_url"],
     scope=['read_vehicle_info', "control_security", 
            "control_security:unlock", "control_security:lock", 
            "read_location", "read_odometer", "read_vin"],
-    test_mode=True,
+    test_mode=AuthConfig["test_mode"],
 )
 
 @app.route('/login', methods=['GET'])
