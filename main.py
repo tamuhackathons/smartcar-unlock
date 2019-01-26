@@ -24,21 +24,18 @@ client = smartcar.AuthClient(
 @app.route('/login', methods=['GET'])
 def login():
     auth_url = client.get_auth_url()
-    print(auth_url)
+    
     return redirect(auth_url)
 
 
 @app.route('/exchange', methods=['GET'])
 def exchange():
-    code = request.args.get('code')
-    
-    print(code)
-    
     global access
     global vehicle_ids
     
-    access = client.exchange_code(code)
+    code = request.args.get('code')
     
+    access = client.exchange_code(code)
     vehicle_ids = smartcar.get_vehicle_ids(
         access['access_token'])['vehicles']
     
@@ -46,13 +43,9 @@ def exchange():
 
 @app.route('/vehicle/<vid>/', methods=['GET'])
 def vehicle(vid):
-    global access
-    
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
     
-    info = vehicle.info()
-    
-    return jsonify(info)
+    return jsonify(vehicle.info())
 
 @app.route('/vehicle/<vid>/unlock')
 def unlock(vid):
@@ -64,7 +57,7 @@ def unlock(vid):
 @app.route('/vehicle/<vid>/lock')
 def lock(vid):
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
-    vehicle.unlock()
+    vehicle.lock()
     
     return redirect(f"vehicle/{vid}")
 
