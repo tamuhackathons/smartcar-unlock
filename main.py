@@ -9,6 +9,7 @@ AuthConfig = config["Auth"]
 app = Flask(__name__)
 
 access = None
+vehicle_ids = None
 
 client = smartcar.AuthClient(
     client_id=AuthConfig["client_id"],
@@ -34,8 +35,12 @@ def exchange():
     print(code)
     
     global access
+    global vehicle_ids
     
     access = client.exchange_code(code)
+    
+    vehicle_ids = smartcar.get_vehicle_ids(
+        access['access_token'])['vehicles']
     
     return redirect(f"vehicle/{0}")
 
@@ -43,25 +48,14 @@ def exchange():
 def vehicle(vid):
     global access
     
-    vehicle_ids = smartcar.get_vehicle_ids(
-        access['access_token'])['vehicles']
-    
-    print(vehicle_ids)
-    
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
     
     info = vehicle.info()
-    
-    print(info)
     
     return jsonify(info)
 
 @app.route('/vehicle/<vid>/unlock')
 def unlock(vid):
-    vehicle_ids = smartcar.get_vehicle_ids(
-        access['access_token'])['vehicles']
-    
-    
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
     vehicle.unlock()
     
@@ -69,10 +63,6 @@ def unlock(vid):
 
 @app.route('/vehicle/<vid>/lock')
 def lock(vid):
-    vehicle_ids = smartcar.get_vehicle_ids(
-        access['access_token'])['vehicles']
-    
-    
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
     vehicle.unlock()
     
@@ -80,15 +70,15 @@ def lock(vid):
 
 @app.route('/vehicle/<vid>/locate')
 def locate(vid):
-    vehicle_ids = smartcar.get_vehicle_ids(
-        access['access_token'])['vehicles']
-    
-    
     vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access['access_token'])
     
-    location_data = vehicle.location()
+    return jsonify(vehicle.location())
+
+@app.route('/vehicle/<vid>/vin')
+def vin(vid):
+    vehicle = smartcar.Vehicle(vehicle_ids[int(vid)], access["access_token"])
     
-    return jsonify(location_data)
+    return jsonify(vehicle.vin())
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port="8000")
