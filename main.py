@@ -31,6 +31,11 @@ def merge_dicts(dict1, dict2, dict3):
 def home():
     if vehicle_ids:
         return redirect('index')
+    elif request.args.get('code'):
+        code = request.args.get('code')
+        exchange_dialog(code)
+        
+        return '<script src="https://javascript-sdk.smartcar.com/redirect-2.0.0.js"></script>'
     else:
         return redirect('login')
 
@@ -50,14 +55,29 @@ def index():
         
         vehicles[info['make']].append([merge_dicts(location, odom, info)])
     
-    return render_template('index.html', cars = vehicles)
+    return render_template('index.html', cars = vehicles, login='false')
 
 @app.route('/login', methods=['GET'])
 def login():
     auth_url = client.get_auth_url()
-    
-    return redirect(auth_url)
+    return render_template('index.html', cid=str(AuthConfig["client_id"]),
+                           uri=str(AuthConfig['redirect_url']),
+                           port=PORT, login='true')
 
+@app.route('/waiting')
+def waiting():
+    while not vehicle_ids:
+        pass
+    
+    return redirect("index")
+
+def exchange_dialog(code):
+    global access
+    global vehicle_ids
+    
+    access = client.exchange_code(code)
+    vehicle_ids = smartcar.get_vehicle_ids(
+        access['access_token'])['vehicles']
 
 @app.route('/exchange', methods=['GET'])
 def exchange():
