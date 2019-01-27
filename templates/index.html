@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Smart Car Datar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <link rel="stylesheet" href="/static/material/material.min.css">
+</head>
+<body>
+    <span><h1>Car Data</h1><a href="http://localhost:8001/login"><button type="button" >Logout</button></a></span>
+    {% for make in cars %}
+        <tr>
+            <br></br>
+            <td>{{make}}</td>
+            {% for info in cars[make] %}
+                {% for data in info %}
+                    <br>
+                    <p>Model: {{data['model']}}<p>
+                    <p>Year: {{data['year']}}<p>
+                    <p>Odometer: {{data['data']['distance']}}<p>
+                    <p>ID: {{data['id']}}<p>
+                    </br>
+                {% endfor %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+
+    <style>
+        body {
+            padding: 12px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</body>
+</html>

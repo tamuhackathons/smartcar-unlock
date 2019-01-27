@@ -1,5 +1,5 @@
 import smartcar, configparser
-from flask import Flask, redirect, request, jsonify
+from flask import Flask, redirect, request, jsonify, render_template
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -18,8 +18,36 @@ client = smartcar.AuthClient(
     scope=['read_vehicle_info', "control_security", 
            "control_security:unlock", "control_security:lock", 
            "read_location", "read_odometer", "read_vin"],
-    test_mode=AuthConfig["test_mode"],
+    test_mode=True,
 )
+    
+def merge_dicts(dict1, dict2, dict3):
+    return {**dict1, **dict2, **dict3}
+
+@app.route('/')
+def home():
+    if vehicle_ids:
+        return redirect('index')
+    else:
+        return redirect('login')
+
+@app.route('/index')
+def index():
+    vehicles = {}
+    
+    for vid in vehicle_ids:
+        vehicle = smartcar.Vehicle(vid, access['access_token'])
+        info = vehicle.info()
+        
+        if info['make'] not in vehicles.keys():
+            vehicles[info['make']] = []
+        
+        location = vehicle.location()
+        odom = vehicle.odometer()
+        
+        vehicles[info['make']].append([merge_dicts(location, odom, info)])
+    
+    return render_template('index.html', cars = vehicles)
 
 @app.route('/login', methods=['GET'])
 def login():
@@ -91,4 +119,4 @@ def user():
     return jsonify(smartcar.get_user_id())
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port="8000")
+    app.run(debug=True, host='0.0.0.0', port="8001")
