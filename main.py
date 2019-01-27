@@ -5,6 +5,9 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 AuthConfig = config["Auth"]
+HOST = config["Config"]["host"]
+PORT = config["Config"]["port"]
+DEBUG = config["Config"]["debug"]
 
 app = Flask(__name__)
 
@@ -18,7 +21,7 @@ client = smartcar.AuthClient(
     scope=['read_vehicle_info', "control_security", 
            "control_security:unlock", "control_security:lock", 
            "read_location", "read_odometer", "read_vin"],
-    test_mode=True,
+    test_mode=AuthConfig["test_mode"],
 )
     
 def merge_dicts(dict1, dict2, dict3):
@@ -67,7 +70,7 @@ def exchange():
     vehicle_ids = smartcar.get_vehicle_ids(
         access['access_token'])['vehicles']
     
-    return redirect(f"vehicle/{0}")
+    return redirect("index")
 
 @app.route('/vehicle/<vid>/', methods=['GET'])
 def vehicle(vid):
@@ -119,4 +122,4 @@ def user():
     return jsonify(smartcar.get_user_id())
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port="8001")
+    app.run(debug=DEBUG, host=HOST, port=PORT)
